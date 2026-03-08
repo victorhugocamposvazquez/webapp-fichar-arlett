@@ -123,7 +123,7 @@ export default async function handler(req, res) {
     const { action } = req.query;
     const fn = routes[action];
     if (!fn) return res.status(404).json({ error: 'Ruta no encontrada' });
-    return fn(req, res);
+    await fn(req, res);
   } catch (err) {
     console.error('Records handler error:', err);
     res.status(500).json({ error: err.message || 'Error interno del servidor' });

@@ -120,11 +120,20 @@ export default async function handler(req, res) {
 
     const { action } = req.query;
 
-    if (action === 'list' && req.method === 'GET') return listUsers(req, res);
-    if (action === 'create' && req.method === 'POST') return createUser(req, res);
+    if (action === 'list' && req.method === 'GET') {
+      await listUsers(req, res);
+      return;
+    }
+    if (action === 'create' && req.method === 'POST') {
+      await createUser(req, res);
+      return;
+    }
 
     const userId = parseInt(action);
-    if (!isNaN(userId)) return handleUserById(req, res, userId, user);
+    if (!isNaN(userId)) {
+      await handleUserById(req, res, userId, user);
+      return;
+    }
 
     res.status(404).json({ error: 'Ruta no encontrada' });
   } catch (err) {
