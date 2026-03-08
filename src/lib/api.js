@@ -53,8 +53,8 @@ export const api = {
     return request(`/records/history?${qs}`);
   },
 
-  getUsers: () => request('/users'),
-  createUser: (data) => request('/users', {
+  getUsers: () => request('/users/list'),
+  createUser: (data) => request('/users/create', {
     method: 'POST',
     body: JSON.stringify(data),
   }),
@@ -62,7 +62,7 @@ export const api = {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
-  resetPin: (id) => request(`/users/${id}/reset-pin`, { method: 'POST' }),
+  resetPin: (id) => request(`/users/${id}?op=reset-pin`, { method: 'POST' }),
   deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
   getAllRecords: (params) => {
     const qs = new URLSearchParams(params).toString();

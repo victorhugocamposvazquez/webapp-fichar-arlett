@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
@@ -114,7 +115,7 @@ function ChangePinModal({ open, onClose }) {
   const maxDots = 4;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={handleClose}>
+    createPortal(<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={handleClose}>
       <div className="glass-strong rounded-2xl p-6 w-full max-w-xs animate-slide-up" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white font-semibold flex items-center gap-2">
@@ -162,7 +163,7 @@ function ChangePinModal({ open, onClose }) {
           </>
         )}
       </div>
-    </div>
+    </div>, document.body)
   );
 }
 
