@@ -1,11 +1,12 @@
+import { randomBytes } from 'node:crypto';
+
 const CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 export function generateInviteCode(length = 6) {
+  const bytes = randomBytes(length);
   let code = '';
-  const bytes = new Uint8Array(length);
-  crypto.getRandomValues(bytes);
-  for (const b of bytes) {
-    code += CHARS[b % CHARS.length];
+  for (let i = 0; i < length; i++) {
+    code += CHARS[bytes[i] % CHARS.length];
   }
   return code;
 }

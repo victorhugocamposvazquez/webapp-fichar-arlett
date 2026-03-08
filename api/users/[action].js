@@ -73,16 +73,21 @@ async function handleUserById(req, res, userId, currentUser) {
 }
 
 export default async function handler(req, res) {
-  const user = requireAdmin(req, res);
-  if (!user) return;
+  try {
+    const user = requireAdmin(req, res);
+    if (!user) return;
 
-  const { action } = req.query;
+    const { action } = req.query;
 
-  if (action === 'list' && req.method === 'GET') return listUsers(req, res);
-  if (action === 'create' && req.method === 'POST') return createUser(req, res);
+    if (action === 'list' && req.method === 'GET') return listUsers(req, res);
+    if (action === 'create' && req.method === 'POST') return createUser(req, res);
 
-  const userId = parseInt(action);
-  if (!isNaN(userId)) return handleUserById(req, res, userId, user);
+    const userId = parseInt(action);
+    if (!isNaN(userId)) return handleUserById(req, res, userId, user);
 
-  res.status(404).json({ error: 'Ruta no encontrada' });
+    res.status(404).json({ error: 'Ruta no encontrada' });
+  } catch (err) {
+    console.error('Users handler error:', err);
+    res.status(500).json({ error: err.message || 'Error interno del servidor' });
+  }
 }
