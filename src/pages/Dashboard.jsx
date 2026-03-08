@@ -199,7 +199,10 @@ export default function Dashboard() {
       setSuccess('¡Jornada iniciada!');
       await fetchStatus();
       setTimeout(() => setSuccess(''), 3000);
-      setTimeout(() => navigate('/'), 3000);
+      setTimeout(() => {
+        logout();
+        navigate('/', { replace: true });
+      }, 3000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -215,6 +218,10 @@ export default function Dashboard() {
       setSuccess('¡Jornada finalizada!');
       await fetchStatus();
       setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => {
+        logout();
+        navigate('/', { replace: true });
+      }, 3000);
     } catch (err) {
       setError(err.message);
     } finally {

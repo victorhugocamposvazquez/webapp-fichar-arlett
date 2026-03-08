@@ -60,16 +60,16 @@ export default function Login() {
   return (
     <div className="min-h-full flex flex-col items-center justify-center px-4 py-8">
       {working.length > 0 && (
-        <div className="w-full max-w-xs mb-4 animate-fade-in">
+        <div className="w-full max-w-md mb-4 animate-fade-in">
           <p className="text-dark-400 text-xs uppercase tracking-wider mb-2">Con jornada iniciada</p>
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 scrollbar-thin">
             {working.map((u) => (
               <div
                 key={u.id}
-                className="inline-flex items-center gap-2 rounded-lg border-2 border-green-500/80 bg-green-500/10 px-3 py-1.5"
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg border-2 border-green-500/80 bg-green-500/10 px-3 py-1.5"
               >
                 <Circle size={10} className="shrink-0 fill-green-400 text-green-400 animate-pulse" />
-                <span className="text-gold-400 font-medium text-sm">{u.name}</span>
+                <span className="text-gold-400 font-medium text-sm whitespace-nowrap">{u.name}</span>
               </div>
             ))}
           </div>
