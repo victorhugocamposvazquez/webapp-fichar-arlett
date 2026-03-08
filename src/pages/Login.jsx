@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
-import { Delete, UserPlus } from 'lucide-react';
+import { Delete } from 'lucide-react';
 
 export default function Login() {
   const [pin, setPin] = useState('');
@@ -123,14 +123,6 @@ export default function Login() {
           )}
         </div>
 
-        {/* First access link */}
-        <button
-          onClick={() => navigate('/setup')}
-          className="w-full mt-4 flex items-center justify-center gap-2 text-dark-400 text-sm py-2 hover:text-gold-400 transition-colors"
-        >
-          <UserPlus size={16} />
-          Primer acceso (tengo un código)
-        </button>
       </div>
 
       <footer className="mt-6 text-dark-600 text-xs text-center">

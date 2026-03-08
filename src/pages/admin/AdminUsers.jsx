@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
-import { Plus, RotateCcw, UserX, UserCheck, X, Shield, User, Copy, Check } from 'lucide-react';
+import { Plus, RotateCcw, UserX, UserCheck, X, Shield, User, Copy, Check, Share2, Link } from 'lucide-react';
 
 function Modal({ open, onClose, children }) {
   if (!open) return null;
@@ -13,20 +13,47 @@ function Modal({ open, onClose, children }) {
   );
 }
 
-function CopyButton({ text }) {
+function getSetupUrl(code) {
+  return `${window.location.origin}/setup/${code}`;
+}
+
+function CopyLinkButton({ code, compact = false }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(getSetupUrl(code));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback
-    }
+    } catch { /* fallback */ }
   };
+
+  if (compact) {
+    return (
+      <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-gold-400 transition-colors" title="Copiar enlace">
+        {copied ? <Check size={14} className="text-green-400" /> : <Link size={14} />}
+      </button>
+    );
+  }
+
   return (
-    <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-gold-400 transition-colors" title="Copiar código">
-      {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+    <button onClick={handleCopy}
+      className="flex-1 flex items-center justify-center gap-2 bg-dark-800 hover:bg-dark-700 text-white font-medium py-3 rounded-xl transition-colors">
+      {copied ? <><Check size={18} className="text-green-400" /> Copiado</> : <><Copy size={18} /> Copiar enlace</>}
+    </button>
+  );
+}
+
+function WhatsAppButton({ code, name }) {
+  const handleShare = () => {
+    const url = getSetupUrl(code);
+    const text = `Hola ${name}, usa este enlace para configurar tu acceso al sistema de fichaje de Arlett:\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  return (
+    <button onClick={handleShare}
+      className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium py-3 rounded-xl transition-colors">
+      <Share2 size={18} /> WhatsApp
     </button>
   );
 }
@@ -35,7 +62,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [showCode, setShowCode] = useState(null);
+  const [showInvite, setShowInvite] = useState(null);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'employee' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
@@ -65,7 +92,7 @@ export default function AdminUsers() {
       const created = await api.createUser(newUser);
       setShowCreate(false);
       setNewUser({ name: '', email: '', role: 'employee' });
-      setShowCode(created);
+      setShowInvite(created);
       fetchUsers();
     } catch (err) {
       setError(err.message);
@@ -75,10 +102,10 @@ export default function AdminUsers() {
   };
 
   const handleResetPin = async (u) => {
-    if (!confirm(`¿Resetear el PIN de ${u.name}? Se generará un nuevo código de acceso.`)) return;
+    if (!confirm(`¿Resetear el PIN de ${u.name}? Se generará un nuevo enlace de acceso.`)) return;
     try {
       const result = await api.resetPin(u.id);
-      setShowCode({ ...u, invite_code: result.invite_code });
+      setShowInvite({ ...u, invite_code: result.invite_code });
       setSuccess(`PIN de ${u.name} reseteado`);
       fetchUsers();
       setTimeout(() => setSuccess(''), 3000);
@@ -150,8 +177,8 @@ export default function AdminUsers() {
                       <span className="text-green-400/70">PIN activo</span>
                     ) : u.invite_code ? (
                       <span className="flex items-center gap-1 text-amber-400/70">
-                        Pendiente · <code className="bg-dark-800 px-1.5 py-0.5 rounded text-xs font-mono">{u.invite_code}</code>
-                        <CopyButton text={u.invite_code} />
+                        Pendiente de registro
+                        <CopyLinkButton code={u.invite_code} compact />
                       </span>
                     ) : (
                       <span className="text-dark-500">Sin acceso</span>
@@ -231,36 +258,34 @@ export default function AdminUsers() {
           >
             {creating ? 'Creando...' : 'Crear empleado'}
           </button>
-          <p className="text-dark-500 text-xs text-center">
-            Se generará un código de invitación para que el empleado configure su acceso.
-          </p>
         </div>
       </Modal>
 
-      {/* Invite code result modal */}
-      <Modal open={!!showCode} onClose={() => setShowCode(null)}>
+      {/* Invite link modal */}
+      <Modal open={!!showInvite} onClose={() => setShowInvite(null)}>
         <div className="text-center space-y-4">
           <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gold-500 to-gold-700 flex items-center justify-center mx-auto">
             <User size={24} className="text-dark-950" />
           </div>
           <div>
-            <p className="text-white font-medium">{showCode?.name}</p>
-            <p className="text-dark-400 text-sm mt-1">Código de acceso:</p>
+            <p className="text-white font-medium text-lg">{showInvite?.name}</p>
+            <p className="text-dark-400 text-sm mt-1">Envíale este enlace para que configure su acceso:</p>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            <code className="bg-dark-800 border border-dark-700 px-5 py-3 rounded-xl text-2xl font-mono tracking-[0.3em] text-gold-400">
-              {showCode?.invite_code}
-            </code>
-            <CopyButton text={showCode?.invite_code || ''} />
+          <div className="bg-dark-800 border border-dark-700 rounded-xl px-4 py-3 break-all">
+            <p className="text-gold-400 text-sm font-mono">{showInvite?.invite_code && getSetupUrl(showInvite.invite_code)}</p>
           </div>
-          <p className="text-dark-400 text-sm">
-            Comunica este código al empleado. Deberá usarlo en <strong className="text-dark-200">"Primer acceso"</strong> para configurar su nombre y PIN.
+          <div className="flex gap-3">
+            <CopyLinkButton code={showInvite?.invite_code || ''} />
+            <WhatsAppButton code={showInvite?.invite_code || ''} name={showInvite?.name || ''} />
+          </div>
+          <p className="text-dark-500 text-xs">
+            El empleado abrirá el enlace, pondrá su nombre completo y elegirá su PIN.
           </p>
           <button
-            onClick={() => setShowCode(null)}
-            className="w-full bg-dark-800 text-white font-medium py-3 rounded-xl hover:bg-dark-700 transition-colors"
+            onClick={() => setShowInvite(null)}
+            className="w-full bg-dark-800 text-dark-300 font-medium py-2.5 rounded-xl hover:bg-dark-700 transition-colors text-sm"
           >
-            Entendido
+            Cerrar
           </button>
         </div>
       </Modal>

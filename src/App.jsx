@@ -57,7 +57,7 @@ function AppRoutes() {
     <InitGuard>
       <Routes>
         <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/setup" element={<PublicRoute><Setup /></PublicRoute>} />
+        <Route path="/setup/:code" element={<PublicRoute><Setup /></PublicRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
