@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
-import { Delete } from 'lucide-react';
+import { Delete, Circle } from 'lucide-react';
 
 export default function Login() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [working, setWorking] = useState([]);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -15,6 +16,14 @@ export default function Login() {
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    api.getWorking().then((data) => setWorking(data.working || [])).catch(() => setWorking([]));
+    const interval = setInterval(() => {
+      api.getWorking().then((data) => setWorking(data.working || [])).catch(() => setWorking([]));
+    }, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleDigit = (digit) => {
@@ -50,6 +59,22 @@ export default function Login() {
 
   return (
     <div className="min-h-full flex flex-col items-center justify-center px-4 py-8">
+      {working.length > 0 && (
+        <div className="w-full max-w-xs mb-4 animate-fade-in">
+          <p className="text-dark-400 text-xs uppercase tracking-wider mb-2">Con jornada iniciada</p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {working.map((u) => (
+              <div
+                key={u.id}
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-green-500/80 bg-green-500/10 px-3 py-1.5"
+              >
+                <Circle size={10} className="shrink-0 fill-green-400 text-green-400 animate-pulse" />
+                <span className="text-gold-400 font-medium text-sm">{u.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="animate-fade-in mb-6 flex flex-col items-center">
         <img
           src="/logo-arlett.png"

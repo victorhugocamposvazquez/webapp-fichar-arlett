@@ -55,6 +55,7 @@ export const api = {
     body: JSON.stringify({ note }),
   }),
   status: () => request('/records/status'),
+  getWorking: () => request('/records/working'),
   history: (params) => {
     const qs = new URLSearchParams(params).toString();
     return request(`/records/history?${qs}`);

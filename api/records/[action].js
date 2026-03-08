@@ -90,6 +90,30 @@ async function history(req, res) {
   res.json({ records: data || [], total: count || 0, page: parseInt(page), limit: parseInt(limit) });
 }
 
+// Público: lista de empleados que tienen jornada abierta (sin auth, para pantalla de PIN)
+async function working(req, res) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Método no permitido' });
+
+  const { data: openRecords, error } = await supabase
+    .from('time_records')
+    .select('user_id')
+    .is('clock_out', null);
+
+  if (error) return res.status(500).json({ error: 'Error al consultar' });
+
+  const userIds = [...new Set((openRecords || []).map((r) => r.user_id))];
+  if (userIds.length === 0) return res.json({ working: [] });
+
+  const { data: users, error: usersError } = await supabase
+    .from('users')
+    .select('id, name')
+    .in('id', userIds)
+    .eq('active', true);
+
+  if (usersError) return res.status(500).json({ error: 'Error al consultar' });
+  res.json({ working: users || [] });
+}
+
 async function all(req, res) {
   const user = requireAdmin(req, res);
   if (!user) return;
@@ -116,6 +140,7 @@ const routes = {
   status,
   history,
   all,
+  working,
 };
 
 export default async function handler(req, res) {

@@ -199,6 +199,7 @@ export default function Dashboard() {
       setSuccess('¡Jornada iniciada!');
       await fetchStatus();
       setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => navigate('/'), 3000);
     } catch (err) {
       setError(err.message);
     } finally {
