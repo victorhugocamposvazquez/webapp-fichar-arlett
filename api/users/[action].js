@@ -1,6 +1,47 @@
-import { supabase } from '../_lib/supabase.js';
-import { requireAdmin } from '../_lib/auth.js';
-import { generateInviteCode } from '../_lib/codes.js';
+import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
+import jwt from 'jsonwebtoken';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+const JWT_SECRET = process.env.JWT_SECRET || 'arlett-fichaje-default-secret';
+
+function verifyToken(req) {
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const token = authHeader?.split(' ')[1];
+  if (!token) return null;
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
+
+function requireAdmin(req, res) {
+  const user = verifyToken(req);
+  if (!user) {
+    res.status(401).json({ error: 'Token requerido o inválido' });
+    return null;
+  }
+  if (user.role !== 'admin') {
+    res.status(403).json({ error: 'Acceso denegado: se requiere rol de administrador' });
+    return null;
+  }
+  return user;
+}
+
+function generateInviteCode(length = 6) {
+  const CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const bytes = crypto.randomBytes(length);
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += CHARS[bytes[i] % CHARS.length];
+  }
+  return code;
+}
 
 async function listUsers(req, res) {
   const { data, error } = await supabase
@@ -8,7 +49,7 @@ async function listUsers(req, res) {
     .select('id, name, email, role, pin_set, invite_code, active, created_at')
     .order('created_at', { ascending: false });
 
-  if (error) return res.status(500).json({ error: 'Error al obtener usuarios' });
+  if (error) return res.status(500).json({ error: 'Error al obtener usuarios', detail: error.message });
   return res.json(data);
 }
 
@@ -31,7 +72,7 @@ async function createUser(req, res) {
 
   if (error) {
     if (error.code === '23505') return res.status(400).json({ error: 'El email ya está registrado' });
-    return res.status(500).json({ error: 'Error al crear empleado' });
+    return res.status(500).json({ error: 'Error al crear empleado', detail: error.message });
   }
   return res.status(201).json(data);
 }

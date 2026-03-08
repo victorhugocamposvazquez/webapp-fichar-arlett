@@ -9,7 +9,14 @@ async function request(path, options = {}) {
   };
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  const data = await res.json();
+
+  const text = await res.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`Error del servidor (${res.status}): ${text.substring(0, 200)}`);
+  }
 
   if (!res.ok) {
     throw new Error(data.error || 'Error en la petición');
