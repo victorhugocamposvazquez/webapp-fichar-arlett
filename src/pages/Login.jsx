@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
-import { Delete } from 'lucide-react';
+import { Delete, UserPlus } from 'lucide-react';
 
 export default function Login() {
   const [pin, setPin] = useState('');
@@ -18,12 +18,12 @@ export default function Login() {
   }, []);
 
   const handleDigit = (digit) => {
-    if (loading || pin.length >= 6) return;
+    if (loading || pin.length >= 4) return;
     setError('');
     const newPin = pin + digit;
     setPin(newPin);
 
-    if (newPin.length >= 4) {
+    if (newPin.length === 4) {
       handleLogin(newPin);
     }
   };
@@ -50,7 +50,6 @@ export default function Login() {
 
   return (
     <div className="min-h-full flex flex-col items-center justify-center px-4 py-8">
-      {/* Logo + Clock */}
       <div className="animate-fade-in mb-6 flex flex-col items-center">
         <img
           src="/logo-arlett.png"
@@ -66,14 +65,12 @@ export default function Login() {
         </p>
       </div>
 
-      {/* PIN Pad */}
       <div className="animate-slide-up w-full max-w-xs">
         <div className="glass rounded-2xl p-6">
           <p className="text-dark-300 text-sm text-center mb-5">Introduce tu PIN</p>
 
-          {/* PIN dots */}
           <div className="flex justify-center gap-3 mb-5">
-            {[...Array(6)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <div
                 key={i}
                 className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${
@@ -85,14 +82,12 @@ export default function Login() {
             ))}
           </div>
 
-          {/* Error */}
           {error && (
             <div className="mb-4 text-center animate-fade-in">
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
 
-          {/* Keypad */}
           <div className="grid grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'].map((key, idx) => {
               if (key === null) return <div key={idx} />;
@@ -121,16 +116,24 @@ export default function Login() {
             })}
           </div>
 
-          {/* Loading indicator */}
           {loading && (
             <div className="mt-5 flex justify-center">
               <div className="w-6 h-6 border-2 border-gold-400 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
+
+        {/* First access link */}
+        <button
+          onClick={() => navigate('/setup')}
+          className="w-full mt-4 flex items-center justify-center gap-2 text-dark-400 text-sm py-2 hover:text-gold-400 transition-colors"
+        >
+          <UserPlus size={16} />
+          Primer acceso (tengo un código)
+        </button>
       </div>
 
-      <footer className="mt-8 text-dark-600 text-xs text-center">
+      <footer className="mt-6 text-dark-600 text-xs text-center">
         RD-ley 8/2019 · Registro de jornada laboral
       </footer>
     </div>

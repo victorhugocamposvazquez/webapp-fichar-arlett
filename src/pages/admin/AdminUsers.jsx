@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
-import { Plus, RotateCcw, UserX, UserCheck, X, Shield, User } from 'lucide-react';
+import { Plus, RotateCcw, UserX, UserCheck, X, Shield, User, Copy, Check } from 'lucide-react';
 
 function Modal({ open, onClose, children }) {
   if (!open) return null;
@@ -13,15 +13,31 @@ function Modal({ open, onClose, children }) {
   );
 }
 
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+  return (
+    <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-gold-400 transition-colors" title="Copiar código">
+      {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+    </button>
+  );
+}
+
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [showResetPin, setShowResetPin] = useState(null);
-  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'employee', pin: '' });
-  const [resetPinValue, setResetPinValue] = useState('');
+  const [showCode, setShowCode] = useState(null);
+  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'employee' });
   const [creating, setCreating] = useState(false);
-  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -43,19 +59,14 @@ export default function AdminUsers() {
       setError('El nombre es obligatorio');
       return;
     }
-    if (!newUser.pin || newUser.pin.length < 4 || newUser.pin.length > 6) {
-      setError('El PIN debe tener entre 4 y 6 dígitos');
-      return;
-    }
     setCreating(true);
     setError('');
     try {
-      await api.createUser(newUser);
-      setSuccess('Empleado creado correctamente');
+      const created = await api.createUser(newUser);
       setShowCreate(false);
-      setNewUser({ name: '', email: '', role: 'employee', pin: '' });
+      setNewUser({ name: '', email: '', role: 'employee' });
+      setShowCode(created);
       fetchUsers();
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -63,24 +74,16 @@ export default function AdminUsers() {
     }
   };
 
-  const handleResetPin = async () => {
-    if (!resetPinValue || resetPinValue.length < 4 || resetPinValue.length > 6) {
-      setError('El nuevo PIN debe tener entre 4 y 6 dígitos');
-      return;
-    }
-    setResetting(true);
-    setError('');
+  const handleResetPin = async (u) => {
+    if (!confirm(`¿Resetear el PIN de ${u.name}? Se generará un nuevo código de acceso.`)) return;
     try {
-      await api.resetPin(showResetPin.id, resetPinValue);
-      setSuccess(`PIN de ${showResetPin.name} actualizado`);
-      setShowResetPin(null);
-      setResetPinValue('');
+      const result = await api.resetPin(u.id);
+      setShowCode({ ...u, invite_code: result.invite_code });
+      setSuccess(`PIN de ${u.name} reseteado`);
       fetchUsers();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message);
-    } finally {
-      setResetting(false);
     }
   };
 
@@ -116,7 +119,7 @@ export default function AdminUsers() {
         </button>
       </div>
 
-      {error && !showCreate && !showResetPin && (
+      {error && !showCreate && (
         <div className="glass rounded-xl px-4 py-3 border-red-500/30 border animate-fade-in">
           <p className="text-red-400 text-sm">{error}</p>
         </div>
@@ -142,16 +145,25 @@ export default function AdminUsers() {
                 <div className="min-w-0">
                   <p className="text-white text-sm font-medium truncate">{u.name}</p>
                   <div className="flex items-center gap-2 text-xs text-dark-400 flex-wrap">
-                    <span>ID: {u.id}</span>
-                    {u.email && <span className="truncate">· {u.email}</span>}
+                    {u.email && <span className="truncate">{u.email}</span>}
+                    {u.pin_set ? (
+                      <span className="text-green-400/70">PIN activo</span>
+                    ) : u.invite_code ? (
+                      <span className="flex items-center gap-1 text-amber-400/70">
+                        Pendiente · <code className="bg-dark-800 px-1.5 py-0.5 rounded text-xs font-mono">{u.invite_code}</code>
+                        <CopyButton text={u.invite_code} />
+                      </span>
+                    ) : (
+                      <span className="text-dark-500">Sin acceso</span>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <button
-                  onClick={() => { setShowResetPin(u); setResetPinValue(''); setError(''); }}
+                  onClick={() => handleResetPin(u)}
                   className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-gold-400 transition-colors"
-                  title="Cambiar PIN"
+                  title="Resetear PIN"
                 >
                   <RotateCcw size={16} />
                 </button>
@@ -186,24 +198,12 @@ export default function AdminUsers() {
               value={newUser.name}
               onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
               className="w-full bg-dark-900 border border-dark-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors"
-              placeholder="Nombre completo"
+              placeholder="Nombre del empleado"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-dark-300 text-sm mb-1">PIN * <span className="text-dark-500">(4-6 dígitos, debe ser único)</span></label>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={newUser.pin}
-              onChange={(e) => setNewUser({ ...newUser, pin: e.target.value.replace(/\D/g, '') })}
-              className="w-full bg-dark-900 border border-dark-700 rounded-xl px-4 py-3 text-white text-center text-xl tracking-[0.5em] font-mono focus:outline-none focus:border-gold-500 transition-colors"
-              placeholder="····"
-            />
-          </div>
-          <div>
-            <label className="block text-dark-300 text-sm mb-1">Email</label>
+            <label className="block text-dark-300 text-sm mb-1">Email <span className="text-dark-500">(opcional)</span></label>
             <input
               type="email"
               value={newUser.email}
@@ -232,40 +232,35 @@ export default function AdminUsers() {
             {creating ? 'Creando...' : 'Crear empleado'}
           </button>
           <p className="text-dark-500 text-xs text-center">
-            Comunica el PIN al empleado. Podrá cambiarlo desde su panel.
+            Se generará un código de invitación para que el empleado configure su acceso.
           </p>
         </div>
       </Modal>
 
-      {/* Reset PIN modal */}
-      <Modal open={!!showResetPin} onClose={() => setShowResetPin(null)}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Cambiar PIN</h2>
-          <button onClick={() => setShowResetPin(null)} className="text-dark-400 hover:text-white">
-            <X size={20} />
-          </button>
-        </div>
-        <div className="space-y-4">
-          <p className="text-dark-300 text-sm">
-            Nuevo PIN para <span className="text-gold-400 font-medium">{showResetPin?.name}</span>
+      {/* Invite code result modal */}
+      <Modal open={!!showCode} onClose={() => setShowCode(null)}>
+        <div className="text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gold-500 to-gold-700 flex items-center justify-center mx-auto">
+            <User size={24} className="text-dark-950" />
+          </div>
+          <div>
+            <p className="text-white font-medium">{showCode?.name}</p>
+            <p className="text-dark-400 text-sm mt-1">Código de acceso:</p>
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <code className="bg-dark-800 border border-dark-700 px-5 py-3 rounded-xl text-2xl font-mono tracking-[0.3em] text-gold-400">
+              {showCode?.invite_code}
+            </code>
+            <CopyButton text={showCode?.invite_code || ''} />
+          </div>
+          <p className="text-dark-400 text-sm">
+            Comunica este código al empleado. Deberá usarlo en <strong className="text-dark-200">"Primer acceso"</strong> para configurar su nombre y PIN.
           </p>
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            value={resetPinValue}
-            onChange={(e) => setResetPinValue(e.target.value.replace(/\D/g, ''))}
-            className="w-full bg-dark-900 border border-dark-700 rounded-xl px-4 py-3 text-white text-center text-xl tracking-[0.5em] font-mono focus:outline-none focus:border-gold-500 transition-colors"
-            placeholder="····"
-            autoFocus
-          />
-          {error && showResetPin && <p className="text-red-400 text-sm">{error}</p>}
           <button
-            onClick={handleResetPin}
-            disabled={resetting}
-            className="w-full bg-gradient-to-r from-gold-600 to-gold-500 text-dark-950 font-semibold py-3 rounded-xl disabled:opacity-50 hover:from-gold-500 hover:to-gold-400 transition-all active:scale-[0.98]"
+            onClick={() => setShowCode(null)}
+            className="w-full bg-dark-800 text-white font-medium py-3 rounded-xl hover:bg-dark-700 transition-colors"
           >
-            {resetting ? 'Actualizando...' : 'Actualizar PIN'}
+            Entendido
           </button>
         </div>
       </Modal>

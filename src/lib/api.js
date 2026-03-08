@@ -19,9 +19,19 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  checkInit: () => request('/auth/init'),
+  initAdmin: (name, pin) => request('/auth/init', {
+    method: 'POST',
+    body: JSON.stringify({ name, pin }),
+  }),
+
   login: (pin) => request('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ pin }),
+  }),
+  setup: (inviteCode, name, pin) => request('/auth/setup', {
+    method: 'POST',
+    body: JSON.stringify({ inviteCode, name, pin }),
   }),
   changePin: (currentPin, newPin) => request('/auth/change-pin', {
     method: 'POST',
@@ -52,10 +62,7 @@ export const api = {
     method: 'PUT',
     body: JSON.stringify(data),
   }),
-  resetPin: (id, newPin) => request(`/users/${id}/reset-pin`, {
-    method: 'POST',
-    body: JSON.stringify({ newPin }),
-  }),
+  resetPin: (id) => request(`/users/${id}/reset-pin`, { method: 'POST' }),
   deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
   getAllRecords: (params) => {
     const qs = new URLSearchParams(params).toString();

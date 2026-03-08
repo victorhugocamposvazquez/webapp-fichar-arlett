@@ -64,16 +64,16 @@ function ChangePinModal({ open, onClose }) {
   const setActivePin = step === 'current' ? setCurrentPin : step === 'new' ? setNewPin : setConfirmPin;
 
   const handleDigit = (digit) => {
-    if (loading || activePin.length >= 6) return;
+    if (loading || activePin.length >= 4) return;
     setError('');
     const val = activePin + digit;
     setActivePin(val);
 
-    if (step === 'current' && val.length >= 4) {
+    if (step === 'current' && val.length === 4) {
       setTimeout(() => setStep('new'), 300);
-    } else if (step === 'new' && val.length >= 4) {
+    } else if (step === 'new' && val.length === 4) {
       setTimeout(() => setStep('confirm'), 300);
-    } else if (step === 'confirm' && val.length === newPin.length) {
+    } else if (step === 'confirm' && val.length === 4) {
       submitChange(currentPin, newPin, val);
     }
   };
@@ -108,10 +108,10 @@ function ChangePinModal({ open, onClose }) {
 
   const labels = {
     current: 'Introduce tu PIN actual',
-    new: 'Elige tu nuevo PIN (4-6 dígitos)',
+    new: 'Elige tu nuevo PIN de 4 dígitos',
     confirm: 'Confirma tu nuevo PIN',
   };
-  const maxDots = step === 'confirm' ? newPin.length : 6;
+  const maxDots = 4;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={handleClose}>

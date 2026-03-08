@@ -15,8 +15,8 @@ export default async function handler(req, res) {
   if (!currentPin || !newPin) {
     return res.status(400).json({ error: 'Se requiere el PIN actual y el nuevo' });
   }
-  if (newPin.length < 4 || newPin.length > 6) {
-    return res.status(400).json({ error: 'El nuevo PIN debe tener entre 4 y 6 dígitos' });
+  if (newPin.length !== 4) {
+    return res.status(400).json({ error: 'El PIN debe tener exactamente 4 dígitos' });
   }
 
   const { data: me } = await supabase

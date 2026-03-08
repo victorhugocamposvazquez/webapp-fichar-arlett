@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE,
   pin_hash TEXT,
   pin_set BOOLEAN DEFAULT FALSE,
+  invite_code TEXT UNIQUE,
   role TEXT DEFAULT 'employee' CHECK (role IN ('employee', 'admin')),
   active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS time_records (
 -- Índices
 CREATE INDEX IF NOT EXISTS idx_records_user ON time_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_records_clock_in ON time_records(clock_in);
+CREATE INDEX IF NOT EXISTS idx_users_invite_code ON users(invite_code);
 
 -- Trigger para actualizar updated_at automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -46,8 +48,7 @@ CREATE OR REPLACE TRIGGER users_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
--- RLS: se usa service_role key desde el backend, así que
--- las políticas permiten todo para ese rol.
+-- RLS con políticas permisivas para service_role (backend)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE time_records ENABLE ROW LEVEL SECURITY;
 

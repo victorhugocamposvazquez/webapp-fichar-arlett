@@ -5,17 +5,20 @@ Desplegable en **Vercel** con **Supabase** como base de datos.
 
 ## Características
 
-- **Login con solo PIN**: cada empleado ficha con un PIN único de 4-6 dígitos. Sin IDs, sin contraseñas.
+- **Login con solo PIN** (4 dígitos): cada empleado ficha con un PIN único que solo él conoce.
+- **Primer acceso con código de invitación**: el admin crea un empleado y le da un código. El empleado introduce el código, su nombre completo y elige su PIN.
+- **El admin nunca ve los PINs**: máxima seguridad y cumplimiento RGPD.
 - **Botón de entrada/salida**: gran botón circular animado, un toque para fichar.
 - **Temporizador en tiempo real** durante la jornada activa.
-- **Cambiar PIN**: cada empleado puede cambiar su propio PIN desde el panel.
+- **Cambiar PIN**: cada empleado puede cambiar su propio PIN.
 - **Backoffice de administración**:
-  - Crear empleados con su PIN inicial.
-  - Cambiar PINs olvidados.
+  - Crear empleados (genera código de invitación automáticamente).
+  - Resetear PIN (genera nuevo código de invitación).
   - Ver todos los registros de fichaje con filtros.
   - Exportar registros a CSV.
 - **Diseño responsive**: mobile-first, optimizado para tablet y escritorio.
 - **Tema dark** con acentos dorados (branding Arlett).
+- **Sin scripts de instalación**: la primera vez que abres la app, te guía para crear el admin.
 
 ## Stack tecnológico
 
@@ -36,11 +39,11 @@ Desplegable en **Vercel** con **Supabase** como base de datos.
 
 ### 2. Variables de entorno
 
-Crea un archivo `.env` en la raíz (para desarrollo local):
+En Vercel (Settings → Environment Variables) o en un archivo `.env` local:
 
 ```env
 SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_SERVICE_KEY=eyJ...tu-service-role-key
+SUPABASE_SERVICE_KEY=tu-service-role-key
 JWT_SECRET=un-secreto-largo-y-seguro
 ```
 
@@ -50,15 +53,7 @@ JWT_SECRET=un-secreto-largo-y-seguro
 npm install
 ```
 
-### 4. Crear admin inicial
-
-```bash
-node seed.js
-```
-
-Esto crea un administrador con PIN **0000** (cámbialo después del primer login).
-
-### 5. Desarrollo local
+### 4. Desarrollo local
 
 ```bash
 npx vercel dev
@@ -66,24 +61,28 @@ npx vercel dev
 
 Accede a **http://localhost:3000**
 
-### 6. Desplegar en Vercel
+### 5. Desplegar en Vercel
 
 ```bash
 npx vercel --prod
 ```
 
-O conecta tu repositorio a Vercel y configura las variables de entorno:
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_KEY`
-- `JWT_SECRET`
+O conecta tu repositorio a Vercel.
 
-## Flujo de uso
+## Primer uso
 
-1. El admin entra con PIN **0000** y va al backoffice.
-2. Crea empleados asignándoles un PIN.
-3. Cada empleado introduce su PIN en la pantalla principal → queda identificado.
-4. Pulsa el botón central para **iniciar** o **finalizar** la jornada.
-5. Los registros quedan almacenados y accesibles desde el backoffice.
+1. Abre la app → aparece la pantalla de **Configuración inicial**.
+2. Introduce tu nombre y elige un PIN de 4 dígitos → se crea la cuenta de admin.
+3. Ve al backoffice → **Empleados** → **Nuevo** → introduce el nombre del empleado.
+4. Se genera un **código de invitación** (ej: `AB3K7N`). Comunícaselo al empleado.
+5. El empleado abre la app → **Primer acceso** → introduce el código → su nombre completo → elige su PIN.
+6. A partir de ahí, cada empleado solo necesita su PIN para fichar.
+
+## Flujo de reseteo de PIN
+
+1. Admin va a **Empleados** → pulsa el botón de reseteo en el empleado.
+2. Se genera un **nuevo código de invitación**.
+3. El empleado usa ese código en **Primer acceso** para configurar un PIN nuevo.
 
 ---
 
