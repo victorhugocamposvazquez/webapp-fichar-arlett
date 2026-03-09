@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
-import { Plus, RotateCcw, UserX, UserCheck, X, Shield, User, Copy, Check, Share2, Link } from 'lucide-react';
+import { Plus, RotateCcw, UserX, UserCheck, X, Shield, User, Copy, Check, Share2, Link, Trash2 } from 'lucide-react';
 
 function Modal({ open, onClose, children }) {
   if (!open) return null;
@@ -61,6 +62,7 @@ function WhatsAppButton({ code, name }) {
 }
 
 export default function AdminUsers() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -120,6 +122,18 @@ export default function AdminUsers() {
     try {
       await api.updateUser(id, { active: !currentActive });
       setSuccess(`${name} ${currentActive ? 'desactivado' : 'activado'}`);
+      fetchUsers();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeletePermanent = async (u) => {
+    if (!confirm(`¿Eliminar a ${u.name} definitivamente? Se borrarán también todos sus registros de fichaje. Esta acción no se puede deshacer.`)) return;
+    try {
+      await api.deleteUserPermanent(u.id);
+      setSuccess(`${u.name} eliminado`);
       fetchUsers();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
@@ -205,6 +219,15 @@ export default function AdminUsers() {
                 >
                   {u.active ? <UserX size={16} /> : <UserCheck size={16} />}
                 </button>
+                {currentUser?.id !== u.id && (
+                  <button
+                    onClick={() => handleDeletePermanent(u)}
+                    className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-red-400 transition-colors"
+                    title="Eliminar definitivamente"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             </div>
           </div>

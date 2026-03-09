@@ -96,6 +96,15 @@ async function handleUserById(req, res, userId, currentUser) {
 
   if (req.method === 'DELETE') {
     if (userId === currentUser.id) return res.status(400).json({ error: 'No puedes eliminar tu propio usuario' });
+
+    const permanent = req.query.permanent === '1' || req.query.permanent === 'true';
+    if (permanent) {
+      await supabase.from('time_records').delete().eq('user_id', userId);
+      const { error } = await supabase.from('users').delete().eq('id', userId);
+      if (error) return res.status(500).json({ error: 'Error al eliminar usuario', detail: error.message });
+      return res.json({ message: 'Usuario eliminado definitivamente' });
+    }
+
     await supabase.from('users').update({ active: false, updated_at: new Date().toISOString() }).eq('id', userId);
     return res.json({ message: 'Usuario desactivado' });
   }

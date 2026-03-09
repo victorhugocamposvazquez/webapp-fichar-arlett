@@ -72,6 +72,7 @@ export const api = {
   }),
   resetPin: (id) => request(`/users/${id}?op=reset-pin`, { method: 'POST' }),
   deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
+  deleteUserPermanent: (id) => request(`/users/${id}?permanent=1`, { method: 'DELETE' }),
   getAllRecords: (params) => {
     const qs = new URLSearchParams(params).toString();
     return request(`/records/all?${qs}`);
