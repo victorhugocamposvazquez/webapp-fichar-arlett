@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo-arlett.png'],
       manifest: {
-        name: 'Arlett Fichaje',
-        short_name: 'Arlett',
+        name: 'Arlett Fichar',
+        short_name: 'Arlett Fichar',
         description: 'Sistema de fichaje laboral · RD-ley 8/2019',
         theme_color: '#0d0d0d',
         background_color: '#0d0d0d',

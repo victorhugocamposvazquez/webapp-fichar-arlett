@@ -177,6 +177,12 @@ export default function Dashboard() {
   const [showChangePin, setShowChangePin] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -274,7 +280,10 @@ export default function Dashboard() {
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 gap-6">
         <div className="text-center animate-fade-in">
           <p className="text-dark-400 text-sm uppercase tracking-widest">
-            {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {now.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+            <span className="text-gold-400/90 font-mono font-normal normal-case tracking-normal ml-2">
+              {now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
           </p>
         </div>
 
