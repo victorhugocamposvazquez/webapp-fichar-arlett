@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo-arlett.png'],
+      includeAssets: ['favicon.svg', 'logo-arlett.png'],
       manifest: {
         name: 'Arlett Fichar',
         short_name: 'Arlett Fichar',
@@ -22,8 +22,10 @@ export default defineConfig({
         scope: '/',
         lang: 'es',
         icons: [
+          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
           { src: '/logo-arlett.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/logo-arlett.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '/logo-arlett.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
